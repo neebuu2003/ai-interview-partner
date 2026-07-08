@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI面试陪练官 - 交互式Demo</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest"></script>
+    <style>
+        :root {
+            --bg-color: #FAF8F4;
+            --surface-color: #FFFFFF;
+            --text-primary: #000000;
+            --text-secondary: #333333;
+            --text-tertiary: #666666;
+            --sage-50: #F4F7F4;
+            --sage-500: #6B9B6F;
+            --sage-600: #5A8A5E;
+            --amber-50: #FEF9E7;
+            --amber-500: #C49859;
+            --amber-600: #A67C42;
+            --rose-50: #FEF5F5;
+            --rose-500: #B87373;
+            --blue-500: #4A90D9;
+            --purple-500: #8B5CF6;
+            --border-color: #E8E4DF;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Plus Jakarta Sans', 'Inter', sans-serif; background-color: var(--bg-color); color: var(--text-primary); min-height: 100vh; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+
+        nav { background: var(--surface-color); border-bottom: 1px solid var(--border-color); padding: 16px 0; position: sticky; top: 0; z-index: 100; }
+        nav .container { display: flex; justify-content: space-between; align-items: center; }
+        nav .logo { display: flex; align-items: center; gap: 12px; }
+        nav .logo h1 { font-size: 24px; font-weight: 600; color: var(--sage-600); }
+        nav .nav-links { display: flex; gap: 24px; }
+        nav .nav-links a { text-decoration: none; color: var(--text-secondary); font-weight: 500; }
+        nav .nav-links a:hover, nav .nav-links a.active { color: var(--sage-600); }
+
+        section { padding: 60px 0; }
+        .section-title { font-size: 36px; font-weight: 600; margin-bottom: 16px; }
+        .section-subtitle { font-size: 18px; color: var(--text-secondary); margin-bottom: 40px; }
+
+        .card { background: var(--surface-color); border-radius: 12px; box-shadow: 0 2px 12px rgba(45, 42, 38, 0.06); border: 1px solid var(--border-color); padding: 24px; }
+
+        .btn-primary { padding: 12px 24px; background: var(--sage-500); color: white; font-weight: 600; border: none; border-radius: 8px; cursor: pointer; }
+        .btn-primary:hover { background: var(--sage-600); }
+        .btn-secondary { padding: 12px 24px; background: transparent; color: var(--text-secondary); font-weight: 500; border: 1px solid var(--border-color); border-radius: 8px; cursor: pointer; }
+
+        .input-field { width: 100%; padding: 12px 16px; background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 8px; font-size: 16px; }
+
+        .tag-filter { display: flex; gap: 8px; flex-wrap: wrap; }
+        .tag-filter button { padding: 8px 16px; background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 20px; font-size: 14px; cursor: pointer; }
+        .tag-filter button.active { background: var(--sage-500); color: white; }
+
+        .stat-card { background: var(--surface-color); border-radius: 12px; padding: 20px; text-align: center; }
+        .stat-card .value { font-size: 32px; font-weight: 700; color: var(--sage-600); }
+        .stat-card .label { font-size: 14px; color: var(--text-tertiary); }
+
+        .question-item { background: var(--surface-color); border-radius: 8px; padding: 16px; margin-bottom: 12px; cursor: pointer; border: 1px solid var(--border-color); }
+        .question-item .question-text { font-weight: 500; color: var(--text-primary); }
+
+        .message-bubble { max-width: 70%; padding: 16px; border-radius: 16px; margin-bottom: 16px; }
+        .message-bubble.ai { background: var(--sage-50); color: var(--sage-800); margin-right: auto; }
+        .message-bubble.user { background: var(--sage-500); color: white; margin-left: auto; }
+
+        .page { display: none; }
+        .page.active { display: block; }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="container">
+            <div class="logo"><i data-lucide="bot" width="28" height="28" style="color: var(--sage-600);"></i><h1>AI面试陪练官</h1></div>
+            <div class="nav-links">
+                <a href="#" onclick="navigate('home')" class="active" id="nav-home">首页</a>
+                <a href="#" onclick="navigate('interview-practice')" id="nav-interview">面试练习</a>
+                <a href="#" onclick="navigate('question-bank')" id="nav-qb">题库中心</a>
+                <a href="#" onclick="navigate('training')" id="nav-training">专项训练</a>
+                <a href="#" onclick="navigate('growth')" id="nav-growth">复盘成长</a>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        <div id="page-home" class="page active">
+            <section>
+                <div class="container">
+                    <div style="text-align: center;">
+                        <h1 class="section-title" style="font-size: 48px;">AI面试陪练官</h1>
+                        <p class="section-subtitle">让每一次面试都胸有成竹</p>
+                        <button class="btn-primary" style="margin-top: 40px; padding: 16px 48px; font-size: 18px;" onclick="navigate('interview-practice')">开始面试练习</button>
+                    </div>
+                </div>
+            </section>
+            <section style="background: var(--surface-color); padding: 40px 0;">
+                <div class="container">
+                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px;">
+                        <div class="stat-card"><div class="value">1000+</div><div class="label">面试题目</div></div>
+                        <div class="stat-card"><div class="value">50+</div><div class="label">岗位分类</div></div>
+                        <div class="stat-card"><div class="value">10万+</div><div class="label">练习次数</div></div>
+                        <div class="stat-card"><div class="value">95%</div><div class="label">好评率</div></div>
+                    </div>
+                </div>
+            </section>
+            <section>
+                <div class="container">
+                    <h2 style="font-size: 28px; margin-bottom: 32px; text-align: center;">核心功能模块</h2>
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;">
+                        <div class="card" onclick="navigate('interview-practice')" style="cursor: pointer;">
+                            <div style="width: 64px; height: 64px; background: var(--sage-50); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin-bottom: 16px;">
+                                <i data-lucide="message-circle-question" width="32" height="32" style="color: var(--sage-600);"></i>
+                            </div>
+                            <h3 style="font-size: 20px; font-weight: 600; margin-bottom: 8px;">面试练习</h3>
+                            <p style="color: var(--text-secondary); font-size: 14px;">文字、语音、视频三种模式</p>
+                        </div>
+                        <div class="card" onclick="navigate('question-bank')" style="cursor: pointer;">
+                            <div style="width: 64px; height: 64px; background: var(--amber-50); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin-bottom: 16px;">
+                                <i data-lucide="library" width="32" height="32" style="color: var(--amber-600);"></i>
+                            </div>
+                            <h3 style="font-size: 20px; font-weight: 600; margin-bottom: 8px;">题库中心</h3>
+                            <p style="color: var(--text-secondary); font-size: 14px;">海量面试题目</p>
+                        </div>
+                        <div class="card" onclick="navigate('training')" style="cursor: pointer;">
+                            <div style="width: 64px; height: 64px; background: var(--blue-50); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin-bottom: 16px;">
+                                <i data-lucide="target" width="32" height="32" style="color: var(--blue-500);"></i>
+                            </div>
+                            <h3 style="font-size: 20px; font-weight: 600; margin-bottom: 8px;">专项训练</h3>
+                            <p style="color: var(--text-secondary); font-size: 14px;">自我介绍、简历问答等</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <div id="page-interview-practice" class="page">
+            <section>
+                <div class="container">
+                    <h1 class="section-title">面试练习</h1>
+                    <p class="section-subtitle">选择面试模式，开始你的模拟面试之旅</p>
+                    
+                    <div class="card" style="max-width: 800px; margin: 0 auto;">
+                        <div style="margin-bottom: 24px;">
+                            <label style="display: block; font-size: 14px; font-weight: 500; color: var(--text-secondary); margin-bottom: 8px;">目标岗位描述（可选）</label>
+                            <textarea id="jd-input" class="input-field" placeholder="请输入目标岗位的JD描述..." style="height: 100px;"></textarea>
+                        </div>
+                        
+                        <div style="margin-bottom: 24px;">
+                            <label style="display: block; font-size: 14px; font-weight: 500; color: var(--text-secondary); margin-bottom: 8px;">目标岗位</label>
+                            <input id="position-input" class="input-field" placeholder="例如：产品经理、前端开发..." />
+                        </div>
+
+                        <div style="margin-bottom: 24px;">
+                            <label style="display: block; font-size: 14px; font-weight: 500; color: var(--text-secondary); margin-bottom: 8px;">面试模式</label>
+                            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
+                                <div onclick="selectMode('text')" id="mode-text" style="text-align: center; padding: 20px; background: var(--sage-50); border-radius: 12px; cursor: pointer; border: 2px solid var(--sage-500);">
+                                    <i data-lucide="keyboard" width="32" height="32" style="color: var(--sage-600); margin-bottom: 8px;"></i>
+                                    <div style="font-weight: 600;">文字面试</div>
+                                    <div style="font-size: 12px; color: var(--text-tertiary);">锻炼思路表达</div>
+                                </div>
+                                <div onclick="selectMode('voice')" id="mode-voice" style="text-align: center; padding: 20px; background: var(--surface-color); border-radius: 12px; cursor: pointer; border: 2px solid var(--border-color);">
+                                    <i data-lucide="mic" width="32" height="32" style="color: var(--amber-600); margin-bottom: 8px;"></i>
+                                    <div style="font-weight: 600;">语音面试</div>
+                                    <div style="font-size: 12px; color: var(--text-tertiary);">锻炼口述表达</div>
+                                </div>
+                                <div onclick="selectMode('video')" id="mode-video" style="text-align: center; padding: 20px; background: var(--surface-color); border-radius: 12px; cursor: pointer; border: 2px solid var(--border-color);">
+                                    <i data-lucide="video" width="32" height="32" style="color: var(--blue-500); margin-bottom: 8px;"></i>
+                                    <div style="font-weight: 600;">视频面试</div>
+                                    <div style="font-size: 12px; color: var(--text-tertiary);">锻炼仪态表情</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom: 32px;">
+                            <label style="display: block; font-size: 14px; font-weight: 500; color: var(--text-secondary); margin-bottom: 8px;">面试官风格</label>
+                            <div class="tag-filter">
+                                <button class="active" onclick="selectStyle('friendly')">友好型</button>
+                                <button onclick="selectStyle('professional')">专业型</button>
+                                <button onclick="selectStyle('pressure')">压力型</button>
+                                <button onclick="selectStyle('deep')">深挖型</button>
+                            </div>
+                        </div>
+
+                        <button class="btn-primary" style="width: 100%; font-size: 18px; padding: 16px;" onclick="startInterview()">开始面试</button>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <div id="page-text-interview" class="page">
+            <section>
+                <div class="container">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                        <h1 class="section-title">文字面试</h1>
+                        <div style="display: flex; gap: 16px; align-items: center;">
+                            <div id="text-interview-timer" style="font-size: 24px; font-weight: 600; color: var(--sage-600);">00:00</div>
+                            <button class="btn-secondary" onclick="endInterview()">结束面试</button>
+                        </div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 300px; gap: 24px;">
+                        <div>
+                            <div id="text-chat-container" style="background: var(--surface-color); border-radius: 12px; padding: 24px; min-height: 500px; max-height: 600px; overflow-y: auto; margin-bottom: 24px;">
+                                <div id="text-messages-list"></div>
+                            </div>
+                            <div style="background: var(--surface-color); border-radius: 12px; padding: 16px;">
+                                <div style="display: flex; gap: 12px;">
+                                    <textarea id="text-answer-input" class="input-field" placeholder="请输入你的回答..." style="flex: 1; height: 80px;"></textarea>
+                                    <button class="btn-primary" onclick="submitTextAnswer()" style="height: 80px;">发送</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="card">
+                                <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 16px;">面试进度</h3>
+                                <div id="text-progress"></div>
+                            </div>
+                            <div class="card">
+                                <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 16px;">核心技能</h3>
+                                <div id="text-skills"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <div id="page-voice-interview" class="page">
+            <section>
+                <div class="container">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                        <h1 class="section-title">语音面试</h1>
+                        <div style="display: flex; gap: 16px; align-items: center;">
+                            <div id="voice-interview-timer" style="font-size: 24px; font-weight: 600; color: var(--amber-600);">00:00</div>
+                            <button class="btn-secondary" onclick="endInterview()">结束面试</button>
+                        </div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 300px; gap: 24px;">
+                        <div>
+                            <div id="voice-chat-container" style="background: var(--surface-color); border-radius: 12px; padding: 24px; min-height: 500px; max-height: 600px; overflow-y: auto; margin-bottom: 24px;">
+                                <div id="voice-messages-list"></div>
+                            </div>
+                            <div style="background: var(--surface-color); border-radius: 12px; padding: 16px;">
+                                <textarea id="voice-answer-input" class="input-field" placeholder="请输入你的回答..." style="width: 100%; height: 80px; margin-bottom: 12px;"></textarea>
+                                <div style="display: flex; gap: 12px;">
+                                    <button class="btn-primary" onclick="submitVoiceAnswer()">发送</button>
+                                    <button class="btn-secondary" onclick="toggleRecording()" style="background: var(--amber-500); color: white;">录音</button>
+                                    <button class="btn-secondary" onclick="playQuestion()">播放题目</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="card">
+                                <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 16px;">面试进度</h3>
+                                <div id="voice-progress"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <div id="page-video-interview" class="page">
+            <section>
+                <div class="container">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                        <h1 class="section-title">视频面试</h1>
+                        <div style="display: flex; gap: 16px; align-items: center;">
+                            <div id="video-interview-timer" style="font-size: 24px; font-weight: 600; color: var(--blue-500);">00:00</div>
+                            <button class="btn-secondary" onclick="endInterview()">结束面试</button>
+                        </div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 400px; gap: 24px;">
+                        <div>
+                            <div id="video-chat-container" style="background: var(--surface-color); border-radius: 12px; padding: 24px; min-height: 400px; max-height: 500px; overflow-y: auto; margin-bottom: 24px;">
+                                <div id="video-messages-list"></div>
+                            </div>
+                            <div style="background: var(--surface-color); border-radius: 12px; padding: 16px;">
+                                <textarea id="video-answer-input" class="input-field" placeholder="请输入你的回答..." style="width: 100%; height: 80px; margin-bottom: 12px;"></textarea>
+                                <div style="display: flex; gap: 12px;">
+                                    <button class="btn-primary" onclick="submitVideoAnswer()">发送</button>
+                                    <button class="btn-secondary" onclick="toggleRecording()" style="background: var(--amber-500); color: white;">录音</button>
+                                    <button class="btn-secondary" onclick="playQuestion()">播放题目</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="card" style="margin-bottom: 24px;">
+                                <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 12px;">摄像头预览</h3>
+                                <div style="aspect-ratio: 3/4; background: #1a1a1a; border-radius: 8px; position: relative;">
+                                    <video id="video-preview" autoplay muted style="width: 100%; height: 100%; object-fit: cover;"></video>
+                                    <div id="video-offline" style="display: flex; flex-direction: column; align-items: center; justify-content: center; position: absolute; inset: 0; color: white;">
+                                        <i data-lucide="video-off" width="48" height="48" style="opacity: 0.5;"></i>
+                                        <div style="font-size: 14px; opacity: 0.7;">点击开启摄像头</div>
+                                    </div>
+                                </div>
+                                <button class="btn-secondary" style="width: 100%; margin-top: 12px;" onclick="toggleVideo()">切换摄像头</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <div id="page-results" class="page">
+            <section>
+                <div class="container">
+                    <h1 class="section-title">面试结果</h1>
+                    <p class="section-subtitle">以下是你的面试表现分析</p>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 40px;">
+                        <div class="card" style="text-align: center;">
+                            <div id="results-total-score" style="font-size: 72px; font-weight: 700; color: var(--sage-600);">0</div>
+                            <div id="results-score-label" style="font-size: 24px; font-weight: 600; margin-top: 8px;">需要改进</div>
+                        </div>
+                        <div class="card"><canvas id="results-radar-chart" height="250"></canvas></div>
+                    </div>
+                    <button class="btn-primary" onclick="navigate('home')" style="margin: 0 auto; display: block;">返回首页</button>
+                </div>
+            </section>
+        </div>
+
+        <div id="page-question-bank" class="page">
+            <section>
+                <div class="container">
+                    <h1 class="section-title">题库中心</h1>
+                    <p class="section-subtitle">海量面试题目，助力面试备考</p>
+                    <div style="display: grid; grid-template-columns: 1fr 300px; gap: 24px;">
+                        <div>
+                            <input id="qb-search" class="input-field" placeholder="搜索题目..." oninput="filterQuestions()" style="margin-bottom: 24px;" />
+                            <div id="qb-questions-list"></div>
+                        </div>
+                        <div>
+                            <div class="card">
+                                <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 16px;">题型分类</h3>
+                                <div id="qb-category-filter" class="tag-filter" style="display: flex; flex-direction: column; gap: 8px;">
+                                    <button class="active" onclick="filterByCategory('all')">全部题目</button>
+                                    <button onclick="filterByCategory('自我介绍')">自我介绍</button>
+                                    <button onclick="filterByCategory('高频问答')">高频问答</button>
+                                    <button onclick="filterByCategory('情景题')">情景题</button>
+                                    <button onclick="filterByCategory('压力面')">压力面</button>
+                                    <button onclick="filterByCategory('专业题')">专业题</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <div id="page-training" class="page">
+            <section>
+                <div class="container">
+                    <h1 class="section-title">专项训练</h1>
+                    <p class="section-subtitle">针对性训练，快速提升面试能力</p>
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px;">
+                        <div class="card" onclick="navigate('training-selfintro')" style="cursor: pointer;">
+                            <div style="display: flex; align-items: center; gap: 16px;">
+                                <div style="width: 56px; height: 56px; background: var(--purple-50); border-radius: 14px; display: flex; align-items: center; justify-content: center;">
+                                    <i data-lucide="user-circle" width="28" height="28" style="color: var(--purple-500);"></i>
+                                </div>
+                                <div>
+                                    <h3 style="font-size: 18px; font-weight: 600;">自我介绍定制</h3>
+                                    <p style="font-size: 14px; color: var(--text-secondary);">输入经历，自动生成3版自我介绍</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card" onclick="navigate('training-resume')" style="cursor: pointer;">
+                            <div style="display: flex; align-items: center; gap: 16px;">
+                                <div style="width: 56px; height: 56px; background: var(--blue-50); border-radius: 14px; display: flex; align-items: center; justify-content: center;">
+                                    <i data-lucide="file-text" width="28" height="28" style="color: var(--blue-500);"></i>
+                                </div>
+                                <div>
+                                    <h3 style="font-size: 18px; font-weight: 600;">简历问答训练</h3>
+                                    <p style="font-size: 14px; color: var(--text-secondary);">围绕简历深挖高频追问</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card" onclick="navigate('training-pressure')" style="cursor: pointer;">
+                            <div style="display: flex; align-items: center; gap: 16px;">
+                                <div style="width: 56px; height: 56px; background: var(--rose-50); border-radius: 14px; display: flex; align-items: center; justify-content: center;">
+                                    <i data-lucide="flame" width="28" height="28" style="color: var(--rose-500);"></i>
+                                </div>
+                                <div>
+                                    <h3 style="font-size: 18px; font-weight: 600;">压力面试特训</h3>
+                                    <p style="font-size: 14px; color: var(--text-secondary);">怼人式提问，锻炼心态</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card" onclick="navigate('training-group')" style="cursor: pointer;">
+                            <div style="display: flex; align-items: center; gap: 16px;">
+                                <div style="width: 56px; height: 56px; background: var(--blue-50); border-radius: 14px; display: flex; align-items: center; justify-content: center;">
+                                    <i data-lucide="users" width="28" height="28" style="color: var(--blue-500);"></i>
+                                </div>
+                                <div>
+                                    <h3 style="font-size: 18px; font-weight: 600;">群面模拟</h3>
+                                    <p style="font-size: 14px; color: var(--text-secondary);">角色分配与话术模板</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <div id="page-training-selfintro" class="page">
+            <section>
+                <div class="container">
+                    <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 24px;">
+                        <button class="btn-secondary" onclick="navigate('training')">返回</button>
+                        <h1 class="section-title">自我介绍定制</h1>
+                    </div>
+                    <div class="card" style="max-width: 800px; margin: 0 auto;">
+                        <textarea id="si-input" class="input-field" placeholder="请输入你的经历或简介..." style="height: 120px; margin-bottom: 16px;"></textarea>
+                        <button class="btn-primary" onclick="generateSelfIntro()">生成自我介绍</button>
+                    </div>
+                    <div id="si-results" style="max-width: 800px; margin: 32px auto;"></div>
+                </div>
+            </section>
+        </div>
+
+        <div id="page-training-resume" class="page">
+            <section>
+                <div class="container">
+                    <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 24px;">
+                        <button class="btn-secondary" onclick="navigate('training')">返回</button>
+                        <h1 class="section-title">简历问答训练</h1>
+                    </div>
+                    <div class="card" style="max-width: 800px; margin: 0 auto;">
+                        <textarea id="rq-input" class="input-field" placeholder="请粘贴你的简历内容..." style="height: 150px; margin-bottom: 16px;"></textarea>
+                        <button class="btn-primary" onclick="generateResumeQuestions()">生成追问问题</button>
+                    </div>
+                    <div id="rq-questions" style="max-width: 800px; margin: 32px auto;"></div>
+                </div>
+            </section>
+        </div>
+
+        <div id="page-training-pressure" class="page">
+            <section>
+                <div class="container">
+                    <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 24px;">
+                        <button class="btn-secondary" onclick="navigate('training')">返回</button>
+                        <h1 class="section-title">压力面试特训</h1>
+                    </div>
+                    <div class="card" style="max-width: 800px; margin: 0 auto;">
+                        <div class="tag-filter">
+                            <button class="active" onclick="selectPressureLevel('low')">低压力</button>
+                            <button onclick="selectPressureLevel('medium')">中压力</button>
+                            <button onclick="selectPressureLevel('high')">高压力</button>
+                        </div>
+                        <button class="btn-primary" style="margin-top: 20px; width: 100%;" onclick="startPressureInterview()">开始压力面试</button>
+                    </div>
+                    <div id="pressure-interview-container" style="max-width: 800px; margin: 32px auto; display: none;">
+                        <div class="card">
+                            <div style="background: var(--rose-50); border-left: 4px solid var(--rose-500); padding: 16px; margin-bottom: 20px;">
+                                <div style="font-weight: 600; color: var(--rose-600); margin-bottom: 8px;">面试官</div>
+                                <div style="color: var(--text-secondary); font-size: 16px;" id="pressure-question">我对你的简历不太满意，你觉得自己凭什么能胜任这个岗位？</div>
+                            </div>
+                            <textarea id="pressure-answer" class="input-field" placeholder="请输入你的回答..." style="height: 100px; margin-bottom: 16px;"></textarea>
+                            <button class="btn-primary" style="width: 100%;" onclick="submitPressureAnswer()">提交回答</button>
+                        </div>
+                        <div id="pressure-feedback" style="margin-top: 24px; display: none;">
+                            <div class="card">
+                                <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 16px;">反馈分析</h3>
+                                <p style="color: var(--text-secondary);" id="pressure-comment">你的回答有一定道理，但还不够坚定。</p>
+                                <button class="btn-secondary" style="margin-top: 16px; width: 100%;" onclick="nextPressureQuestion()">下一题</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <div id="page-training-group" class="page">
+            <section>
+                <div class="container">
+                    <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 24px;">
+                        <button class="btn-secondary" onclick="navigate('training')">返回</button>
+                        <h1 class="section-title">群面模拟</h1>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin-bottom: 40px;">
+                        <div class="card" data-role="leader" onclick="selectGroupRole(this)">
+                            <div style="font-size: 32px; margin-bottom: 8px;">👑</div>
+                            <div style="font-weight: 600;">团队领导者</div>
+                        </div>
+                        <div class="card" data-role="timer" onclick="selectGroupRole(this)">
+                            <div style="font-size: 32px; margin-bottom: 8px;">⏱️</div>
+                            <div style="font-weight: 600;">时间管理者</div>
+                        </div>
+                        <div class="card" data-role="recorder" onclick="selectGroupRole(this)">
+                            <div style="font-size: 32px; margin-bottom: 8px;">📝</div>
+                            <div style="font-weight: 600;">记录员</div>
+                        </div>
+                        <div class="card" data-role="presenter" onclick="selectGroupRole(this)">
+                            <div style="font-size: 32px; margin-bottom: 8px;">🎤</div>
+                            <div style="font-weight: 600;">汇报者</div>
+                        </div>
+                        <div class="card" data-role="analyst" onclick="selectGroupRole(this)">
+                            <div style="font-size: 32px; margin-bottom: 8px;">🔍</div>
+                            <div style="font-weight: 600;">分析员</div>
+                        </div>
+                    </div>
+                    <div id="group-role-templates" class="card" style="max-width: 800px; margin: 0 auto;">
+                        <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 16px;">选择一个角色开始</h3>
+                        <p style="color: var(--text-tertiary);">点击上方角色卡片，获取专属话术模板</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <div id="page-growth" class="page">
+            <section>
+                <div class="container">
+                    <h1 class="section-title">复盘成长</h1>
+                    <p class="section-subtitle">追踪你的学习进度</p>
+                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin-bottom: 40px;">
+                        <div class="stat-card"><div class="value">23</div><div class="label">练习次数</div></div>
+                        <div class="stat-card"><div class="value">7</div><div class="label">连续打卡</div></div>
+                        <div class="stat-card"><div class="value">876</div><div class="label">累计积分</div></div>
+                        <div class="stat-card"><div class="value">LV.8</div><div class="label">当前等级</div></div>
+                    </div>
+                    <div style="display: flex; gap: 16px; margin-bottom: 24px;">
+                        <button class="btn-secondary" onclick="switchGrowthTab('history')">答题历史</button>
+                        <button class="btn-secondary" onclick="switchGrowthTab('ability')">能力看板</button>
+                        <button class="btn-secondary" onclick="switchGrowthTab('checkin')">打卡闯关</button>
+                    </div>
+                    <div id="growth-tab-content">
+                        <div id="growth-tab-history">
+                            <div id="growth-history-list"></div>
+                        </div>
+                        <div id="growth-tab-ability" class="page" style="display: none;">
+                            <div class="card" style="max-width: 600px; margin: 0 auto;">
+                                <canvas id="growth-ability-chart" height="300"></canvas>
+                            </div>
+                        </div>
+                        <div id="growth-tab-checkin" class="page" style="display: none;">
+                            <div class="card" style="max-width: 600px; margin: 0 auto;">
+                                <button class="btn-primary" onclick="doCheckIn()">今日打卡</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script>
+        const state = {
+            currentPage: 'home',
+            interviewMode: 'text',
+            interviewStyle: 'friendly',
+            currentQuestionIndex: 0,
+            questions: [],
+            answers: [],
+            extractedSkills: [],
+            timerInterval: null,
+            startTime: 0,
+            isRecording: false,
+            recognition: null,
+            videoStream: null,
+        };
+
+        const questionBank = [
+            { text: '请做一个自我介绍', category: '自我介绍', difficulty: '初级' },
+            { text: '你为什么选择我们公司？', category: '高频问答', difficulty: '初级' },
+            { text: '你的优缺点是什么？', category: '高频问答', difficulty: '初级' },
+            { text: '请分享一次你在项目中遇到的最大挑战', category: '情景题', difficulty: '中级' },
+            { text: '如果你和上级意见不一致，你会怎么办？', category: '情景题', difficulty: '中级' },
+            { text: '你觉得自己凭什么能胜任这个岗位？', category: '压力面', difficulty: '中级' },
+            { text: '请解释React中useEffect的执行机制', category: '专业题', difficulty: '中级' },
+        ];
+
+        const pressureQuestions = [
+            '我对你的简历不太满意，你觉得自己凭什么能胜任这个岗位？',
+            '你的期望薪资太高了，我们无法满足，你还愿意来吗？',
+            '从你的经历来看，你根本没有相关经验，为什么要投递这个岗位？',
+        ];
+
+        function navigate(page) {
+            document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
+            document.getElementById('page-' + page).classList.add('active');
+            document.querySelectorAll('.nav-links a').forEach(function(a) { a.classList.remove('active'); });
+            var navId = page === 'interview-practice' ? 'nav-interview' : page.startsWith('training') ? 'nav-training' : 'nav-' + page;
+            document.getElementById(navId)?.classList.add('active');
+            state.currentPage = page;
+            lucide.createIcons();
+        }
+
+        function selectMode(mode) {
+            state.interviewMode = mode;
+            ['text', 'voice', 'video'].forEach(function(m) {
+                var el = document.getElementById('mode-' + m);
+                el.style.borderColor = m === mode ? 'var(--sage-500)' : 'var(--border-color)';
+                el.style.background = m === mode ? 'var(--sage-50)' : 'var(--surface-color)';
+            });
+        }
+
+        function selectStyle(style) {
+            state.interviewStyle = style;
+            document.querySelectorAll('#page-interview-practice .tag-filter button').forEach(function(btn) { btn.classList.remove('active'); });
+            event.target.classList.add('active');
+        }
+
+        function startInterview() {
+            var jd = document.getElementById('jd-input').value;
+            var position = document.getElementById('position-input').value || '通用岗位';
+            
+            state.extractedSkills = ['项目经验', '团队协作', '沟通能力'];
+            state.questions = [
+                { content: '请做一个自我介绍', type: 'behavioral' },
+                { content: '请分享一次你在项目中遇到的最大挑战', type: 'situational' },
+                { content: '你的职业规划是什么？', type: 'cultural' },
+                { content: '最后，你有什么问题想问我们吗？', type: 'cultural' },
+            ];
+            state.currentQuestionIndex = 0;
+            state.answers = [];
+            state.startTime = Date.now();
+
+            if (state.interviewMode === 'text') {
+                navigate('text-interview');
+                initTextInterview();
+            } else if (state.interviewMode === 'voice') {
+                navigate('voice-interview');
+                initVoiceInterview();
+            } else if (state.interviewMode === 'video') {
+                navigate('video-interview');
+                initVideoInterview();
+            }
+
+            startTimer();
+        }
+
+        function startTimer() {
+            clearInterval(state.timerInterval);
+            state.timerInterval = setInterval(function() {
+                var elapsed = Math.floor((Date.now - state.startTime) / 1000);
+                var mins = String(Math.floor(elapsed / 60)).padStart(2, '0');
+                var secs = String(elapsed % 60).padStart(2, '0');
+                var timerId = state.interviewMode === 'text' ? 'text-interview-timer' : state.interviewMode === 'voice' ? 'voice-interview-timer' : 'video-interview-timer';
+                document.getElementById(timerId)?.textContent = mins + ':' + secs;
+            }, 1000);
+        }
+
+        function initTextInterview() {
+            var messagesList = document.getElementById('text-messages-list');
+            messagesList.innerHTML = '';
+            addMessage('ai', '你好！欢迎来参加今天的模拟面试，我是你的面试官。让我们开始吧！');
+            addMessage('ai', state.questions[0].content);
+            renderSkills('text');
+            updateProgress('text');
+        }
+
+        function initVoiceInterview() {
+            var messagesList = document.getElementById('voice-messages-list');
+            messagesList.innerHTML = '';
+            addMessage('ai', '你好！欢迎来参加今天的模拟面试，我是你的面试官。让我们开始吧！', 'voice');
+            addMessage('ai', state.questions[0].content, 'voice');
+        }
+
+        function initVideoInterview() {
+            var messagesList = document.getElementById('video-messages-list');
+            messagesList.innerHTML = '';
+            addMessage('ai', '你好！欢迎来参加今天的模拟面试，我是你的面试官。让我们开始吧！', 'video');
+            addMessage('ai', state.questions[0].content, 'video');
+        }
+
+        function addMessage(type, content, mode) {
+            if (!mode) mode = 'text';
+            var messagesList = document.getElementById(mode + '-messages-list');
+            var bubble = document.createElement('div');
+            bubble.className = 'message-bubble ' + type;
+            bubble.innerHTML = '<div style="font-weight: ' + (type === 'ai' ? '600' : '500') + '; margin-bottom: 4px;">' + (type === 'ai' ? 'AI面试官' : '你') + '</div><div>' + content + '</div>';
+            messagesList.appendChild(bubble);
+            scrollToBottom(mode);
+        }
+
+        function scrollToBottom(mode) {
+            var container = document.getElementById(mode + '-chat-container');
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function renderSkills(mode) {
+            var skillsContainer = document.getElementById(mode + '-skills');
+            skillsContainer.innerHTML = state.extractedSkills.map(function(skill) {
+                return '<span style="background: var(--sage-50); color: var(--sage-600); padding: 6px 12px; border-radius: 12px; font-size: 12px;">' + skill + '</span>';
+            }).join('');
+        }
+
+        function updateProgress(mode) {
+            var progressContainer = document.getElementById(mode + '-progress');
+            var current = state.currentQuestionIndex + 1;
+            var total = state.questions.length;
+            var percent = Math.round((current / total) * 100);
+            progressContainer.innerHTML = '<div style="display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 8px;"><span>第 ' + current + ' / ' + total + ' 题</span><span>' + percent + '%</span></div><div style="height: 8px; background: var(--border-color); border-radius: 4px; overflow: hidden;"><div style="height: 100%; width: ' + percent + '%; background: var(--sage-500); border-radius: 4px;"></div></div>';
+        }
+
+        function submitAnswer(mode) {
+            var input = document.getElementById(mode + '-answer-input');
+            var answer = input.value.trim();
+            if (!answer) return;
+            
+            addMessage('user', answer, mode);
+            
+            var feedback = {
+                rating: Math.floor(Math.random() * 2) + 3,
+                comment: '你的回答有一定基础，但还可以更加深入。',
+                strengths: ['有基本框架'],
+                weaknesses: ['缺乏量化成果']
+            };
+            
+            state.answers.push({ question: state.questions[state.currentQuestionIndex], answer: answer, feedback: feedback });
+            input.value = '';
+            
+            state.currentQuestionIndex++;
+            updateProgress(mode);
+            
+            setTimeout(function() {
+                if (state.currentQuestionIndex < state.questions.length) {
+                    addMessage('ai', state.questions[state.currentQuestionIndex].content, mode);
+                } else {
+                    endInterview();
+                }
+            }, 1500);
+        }
+
+        function submitTextAnswer() { submitAnswer('text'); }
+        function submitVoiceAnswer() { submitAnswer('voice'); }
+        function submitVideoAnswer() { submitAnswer('video'); }
+
+        function endInterview() {
+            clearInterval(state.timerInterval);
+            showResults();
+        }
+
+        function showResults() {
+            navigate('results');
+            
+            var totalScore = Math.floor(Math.random() * 30) + 60;
+            document.getElementById('results-total-score').textContent = totalScore;
+            document.getElementById('results-score-label').textContent = totalScore >= 80 ? '良好' : totalScore >= 70 ? '中等' : '需要改进';
+
+            var ctx = document.getElementById('results-radar-chart').getContext('2d');
+            new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['表达逻辑', '专业深度', '临场应变', '沟通能力'],
+                    datasets: [{
+                        label: '能力评分',
+                        data: [75, 65, 70, 80],
+                        backgroundColor: 'rgba(107, 155, 111, 0.2)',
+                        borderColor: '#6B9B6F',
+                        borderWidth: 2,
+                    }]
+                },
+                options: { scales: { r: { beginAtZero: true, max: 100 } } }
+            });
+        }
+
+        function renderQuestionBank() {
+            var list = document.getElementById('qb-questions-list');
+            list.innerHTML = questionBank.map(function(q) {
+                return '<div class="question-item" onclick="showQuestionDetail(this)"><div class="question-text">' + q.text + '</div><div style="display: flex; gap: 8px;"><span style="background: var(--sage-50); color: var(--sage-600); padding: 4px 10px; border-radius: 12px; font-size: 12px;">' + q.category + '</span><span style="background: var(--amber-50); color: var(--amber-600); padding: 4px 10px; border-radius: 12px; font-size: 12px;">' + q.difficulty + '</span></div></div>';
+            }).join('');
+        }
+
+        function filterByCategory(category) {
+            document.querySelectorAll('#qb-category-filter button').forEach(function(btn) { btn.classList.remove('active'); });
+            event.target.classList.add('active');
+            
+            var list = document.getElementById('qb-questions-list');
+            var filtered = category === 'all' ? questionBank : questionBank.filter(function(q) { return q.category === category; });
+            list.innerHTML = filtered.map(function(q) {
+                return '<div class="question-item" onclick="showQuestionDetail(this)"><div class="question-text">' + q.text + '</div></div>';
+            }).join('');
+        }
+
+        function filterQuestions() {
+            var search = document.getElementById('qb-search').value.toLowerCase();
+            var list = document.getElementById('qb-questions-list');
+            var filtered = questionBank.filter(function(q) { return q.text.toLowerCase().includes(search); });
+            list.innerHTML = filtered.map(function(q) {
+                return '<div class="question-item" onclick="showQuestionDetail(this)"><div class="question-text">' + q.text + '</div></div>';
+            }).join('');
+        }
+
+        function showQuestionDetail(el) {
+            var text = el.querySelector('.question-text').textContent;
+            alert('题目详情：\n' + text);
+        }
+
+        function generateSelfIntro() {
+            var input = document.getElementById('si-input').value;
+            if (!input.trim()) return;
+            
+            document.getElementById('si-results').innerHTML = '<div class="card" style="margin-bottom: 20px;"><h3 style="font-weight: 600; margin-bottom: 8px;">简洁版 (30秒)</h3><p style="color: var(--text-secondary);">你好，我是求职者。我具备扎实的专业基础和丰富的实践经验。</p></div><div class="card" style="margin-bottom: 20px;"><h3 style="font-weight: 600; margin-bottom: 8px;">亮眼版 (1分钟)</h3><p style="color: var(--text-secondary);">面试官您好！我是一位充满热情的专业人士，能够为团队带来独特价值。</p></div><div class="card"><h3 style="font-weight: 600; margin-bottom: 8px;">稳重型 (2分钟)</h3><p style="color: var(--text-secondary);">您好，我积累了丰富的经验，相信能够为贵公司做出贡献。</p></div>';
+        }
+
+        function generateResumeQuestions() {
+            var input = document.getElementById('rq-input').value;
+            if (!input.trim()) return;
+            
+            document.getElementById('rq-questions').innerHTML = '<div class="question-item"><div class="question-text">请详细介绍一下你在主要项目中担任的角色？</div></div><div class="question-item"><div class="question-text">在项目开发过程中，你遇到的最大挑战是什么？</div></div>';
+        }
+
+        var pressureCurrentIndex = 0;
+
+        function selectPressureLevel(level) {
+            document.querySelectorAll('#page-training-pressure .tag-filter button').forEach(function(btn) { btn.classList.remove('active'); });
+            event.target.classList.add('active');
+        }
+
+        function startPressureInterview() {
+            pressureCurrentIndex = 0;
+            document.getElementById('pressure-interview-container').style.display = 'block';
+            document.getElementById('pressure-feedback').style.display = 'none';
+            document.getElementById('pressure-question').textContent = pressureQuestions[0];
+        }
+
+        function submitPressureAnswer() {
+            var answer = document.getElementById('pressure-answer').value.trim();
+            if (!answer) return;
+            document.getElementById('pressure-feedback').style.display = 'block';
+        }
+
+        function nextPressureQuestion() {
+            pressureCurrentIndex++;
+            if (pressureCurrentIndex >= pressureQuestions.length) {
+                alert('压力面试特训完成！');
+                document.getElementById('pressure-interview-container').style.display = 'none';
+                return;
+            }
+            document.getElementById('pressure-question').textContent = pressureQuestions[pressureCurrentIndex];
+            document.getElementById('pressure-feedback').style.display = 'none';
+        }
+
+        function selectGroupRole(el) {
+            var role = el.dataset.role;
+            var roleNames = { leader: '团队领导者', timer: '时间管理者', recorder: '记录员', presenter: '汇报者', analyst: '分析员' };
+            
+            document.getElementById('group-role-templates').innerHTML = '<h3 style="font-weight: 600; margin-bottom: 16px;">' + roleNames[role] + '话术模板</h3><div style="background: var(--sage-50); padding: 16px; border-radius: 8px;">' + roleNames[role] + '专属话术模板内容...</div>';
+        }
+
+        function renderGrowthData() {
+            var historyList = document.getElementById('growth-history-list');
+            historyList.innerHTML = '<div style="background: var(--bg-color); padding: 16px; border-radius: 8px; margin-bottom: 12px;"><div style="font-weight: 500;">产品经理面试练习</div><div style="font-size: 12px; color: var(--text-tertiary);">2024-01-15 14:30 · 85分</div></div><div style="background: var(--bg-color); padding: 16px; border-radius: 8px;"><div style="font-weight: 500;">前端开发面试练习</div><div style="font-size: 12px; color: var(--text-tertiary);">2024-01-14 10:00 · 78分</div></div>';
+        }
+
+        function switchGrowthTab(tab) {
+            document.querySelectorAll('#growth-tab-content > div').forEach(function(d) { d.style.display = 'none'; });
+            document.getElementById('growth-tab-' + tab).style.display = 'block';
+            
+            if (tab === 'ability') {
+                var ctx = document.getElementById('growth-ability-chart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'radar',
+                    data: {
+                        labels: ['表达力', '逻辑力', '应变力', '专业度'],
+                        datasets: [{
+                            label: '当前能力',
+                            data: [75, 80, 65, 70],
+                            backgroundColor: 'rgba(107, 155, 111, 0.2)',
+                            borderColor: '#6B9B6F',
+                            borderWidth: 2,
+                        }]
+                    },
+                    options: { scales: { r: { beginAtZero: true, max: 100 } } }
+                });
+            }
+        }
+
+        function doCheckIn() {
+            alert('打卡成功！');
+        }
+
+        function playQuestion() {
+            var currentQuestion = state.questions[state.currentQuestionIndex]?.content;
+            if (!currentQuestion) return;
+            
+            var utterance = new SpeechSynthesisUtterance(currentQuestion);
+            utterance.lang = 'zh-CN';
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function toggleRecording() {
+            alert('语音识别功能演示');
+        }
+
+        function toggleVideo() {
+            var video = document.getElementById('video-preview');
+            var offline = document.getElementById('video-offline');
+            
+            if (state.videoStream) {
+                state.videoStream.getTracks().forEach(function(track) { track.stop(); });
+                state.videoStream = null;
+                video.style.display = 'none';
+                offline.style.display = 'flex';
+            } else {
+                navigator.mediaDevices.getUserMedia({ video: true })
+                    .then(function(stream) {
+                        state.videoStream = stream;
+                        video.srcObject = stream;
+                        video.style.display = 'block';
+                        offline.style.display = 'none';
+                    })
+                    .catch(function(err) {
+                        alert('无法访问摄像头');
+                    });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            lucide.createIcons();
+            renderQuestionBank();
+            renderGrowthData();
+        });
+    </script>
+</body>
+</html>
