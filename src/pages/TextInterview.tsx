@@ -28,7 +28,12 @@ export default function TextInterview() {
 
   useEffect(() => {
     if (!interviewId) {
-      navigate('/')
+      const timer = setTimeout(() => {
+        if (!interviewId) {
+          navigate('/interview-practice')
+        }
+      }, 500)
+      return () => clearTimeout(timer)
     }
   }, [interviewId, navigate])
 

@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { mockResumeQuestions } from '@/lib/mockApi'
 import { FileText, Search, ArrowLeft, MessageCircle, CheckCircle2, Play, Pause, ChevronRight, Sparkles, Mic, MicOff, Video, VideoOff, Volume2, VolumeX, Send, Clock, X, User } from 'lucide-react'
 
 interface Question {
@@ -40,12 +41,7 @@ export default function ResumeQuestions() {
     
     setIsGenerating(true)
     try {
-      const response = await fetch('/api/training/resume-questions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ resume: resume.trim() }),
-      })
-      const data = await response.json()
+      const data = await mockResumeQuestions(resume.trim())
       if (data.success) {
         setQuestions(data.questions)
       }

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { mockQuestionBank } from '@/lib/mockApi'
 import { 
   Search, Filter, X, BookOpen, User, MessageCircle, Users, Flame, Code, Brain, 
   ChevronRight, ArrowLeft, Star, AlertTriangle, Lightbulb, Target, CheckCircle2,
@@ -57,24 +58,34 @@ export default function QuestionBank() {
 
   const fetchQuestions = async () => {
     setLoading(true)
-    const params = new URLSearchParams()
-    if (filters.category !== 'all') params.set('category', filters.category)
-    if (filters.difficulty !== 'all') params.set('difficulty', filters.difficulty)
-    if (filters.industry !== 'all') params.set('industry', filters.industry)
-    if (filters.position !== 'all') params.set('position', filters.position)
-    if (keyword) params.set('keyword', keyword)
     
-    try {
-      const response = await fetch(`/api/question-bank/questions?${params.toString()}`)
-      const data = await response.json()
-      if (data.success) {
-        setQuestions(data.data)
-      }
-    } catch (error) {
-      console.error('Failed to fetch questions:', error)
-    } finally {
-      setLoading(false)
+    await new Promise(resolve => setTimeout(resolve, 300))
+    
+    let filtered = [...mockQuestionBank]
+    
+    if (filters.category !== 'all') {
+      filtered = filtered.filter(q => q.category === filters.category)
     }
+    if (filters.difficulty !== 'all') {
+      filtered = filtered.filter(q => q.difficulty === filters.difficulty)
+    }
+    if (filters.industry !== 'all') {
+      filtered = filtered.filter(q => q.industry === filters.industry)
+    }
+    if (filters.position !== 'all') {
+      filtered = filtered.filter(q => q.position === filters.position)
+    }
+    if (keyword) {
+      const lowerKeyword = keyword.toLowerCase()
+      filtered = filtered.filter(q => 
+        q.question.toLowerCase().includes(lowerKeyword) ||
+        q.position.toLowerCase().includes(lowerKeyword) ||
+        q.industry.toLowerCase().includes(lowerKeyword)
+      )
+    }
+    
+    setQuestions(filtered)
+    setLoading(false)
   }
 
   const categories = [

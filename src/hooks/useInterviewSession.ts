@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useInterviewStore } from '@/store/interview'
 import type { Feedback } from '@/store/interview'
+import { mockInterviewAnswer, mockInterviewResults } from '@/lib/mockApi'
 
 export function useInterviewSession() {
   const { 
@@ -33,6 +34,15 @@ export function useInterviewSession() {
     }
   }, [])
 
+  useEffect(() => {
+    if (!interviewId) {
+      const storedId = sessionStorage.getItem('interviewId')
+      if (storedId) {
+        sessionStorage.removeItem('interviewId')
+      }
+    }
+  }, [interviewId])
+
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60)
     const secs = seconds % 60
@@ -52,16 +62,7 @@ export function useInterviewSession() {
     addMessage(userMessage)
 
     try {
-      const response = await fetch('/api/interview/answer', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          interviewId,
-          answer: answerText.trim(),
-        }),
-      })
-
-      const data = await response.json()
+      const data = await mockInterviewAnswer(interviewId, answerText.trim())
       
       if (data.success) {
         userMessage.feedback = data.feedback
@@ -80,11 +81,19 @@ export function useInterviewSession() {
           updateProgress(data.currentQuestionIndex, data.totalQuestions)
           finishInterview()
           
-          const resultsResponse = await fetch(`/api/interview/results?id=${interviewId}`)
-          const resultsData = await resultsResponse.json()
+          const resultsData = await mockInterviewResults(interviewId)
           
           if (resultsData.success) {
-            setResults(resultsData)
+            setResults({
+              radarData: resultsData.radarData!,
+              summary: resultsData.summary!,
+              suggestions: resultsData.suggestions!,
+              avgRating: resultsData.avgRating!,
+              totalQuestions: resultsData.totalQuestions!,
+              answeredQuestions: resultsData.answeredQuestions!,
+              extractedSkills: resultsData.extractedSkills!,
+              analysisSummary: resultsData.analysisSummary!,
+            })
           }
           
           setTimeout(() => {

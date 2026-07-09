@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useInterviewStore } from '@/store/interview'
 import type { Feedback } from '@/store/interview'
+import { mockInterviewAnswer, mockInterviewResults } from '@/lib/mockApi'
 import { Send, Clock, MessageSquare, Star, CheckCircle2, XCircle, Lightbulb, Target, GitBranch, Hash, AlertTriangle, Loader2, Brain, Home } from 'lucide-react'
 
 export default function Interview() {
@@ -68,16 +69,7 @@ export default function Interview() {
     setAnswer('')
 
     try {
-      const response = await fetch('/api/interview/answer', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          interviewId,
-          answer: answer.trim(),
-        }),
-      })
-
-      const data = await response.json()
+      const data = await mockInterviewAnswer(interviewId, answer.trim())
       
       if (data.success) {
         userMessage.feedback = data.feedback
@@ -96,11 +88,19 @@ export default function Interview() {
           updateProgress(data.currentQuestionIndex, data.totalQuestions)
           finishInterview()
           
-          const resultsResponse = await fetch(`/api/interview/results?id=${interviewId}`)
-          const resultsData = await resultsResponse.json()
+          const resultsData = await mockInterviewResults(interviewId)
           
           if (resultsData.success) {
-            setResults(resultsData)
+            setResults({
+              radarData: resultsData.radarData!,
+              summary: resultsData.summary!,
+              suggestions: resultsData.suggestions!,
+              avgRating: resultsData.avgRating!,
+              totalQuestions: resultsData.totalQuestions!,
+              answeredQuestions: resultsData.answeredQuestions!,
+              extractedSkills: resultsData.extractedSkills!,
+              analysisSummary: resultsData.analysisSummary!,
+            })
           }
           
           setTimeout(() => {

@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { mockSelfIntro } from '@/lib/mockApi'
 import { User, Sparkles, Copy, Check, ArrowLeft, FileText, Star, Shield, Mic, MicOff, Video, VideoOff, Play, Pause, Volume2, VolumeX, Send, Clock, Loader2 } from 'lucide-react'
 
 export default function SelfIntro() {
@@ -34,12 +35,7 @@ export default function SelfIntro() {
     
     setIsGenerating(true)
     try {
-      const response = await fetch('/api/training/self-intro', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ experience: experience.trim() }),
-      })
-      const data = await response.json()
+      const data = await mockSelfIntro(experience.trim())
       if (data.success) {
         setResults({
           concise: data.concise,

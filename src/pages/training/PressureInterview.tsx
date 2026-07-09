@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { mockPressureQuestion, mockPressureReset } from '@/lib/mockApi'
 import { Flame, ArrowLeft, Zap, Shield, Heart, RotateCcw, Send, AlertTriangle, Mic, MicOff, Video, VideoOff, Play, Pause, Volume2, VolumeX, Clock, User } from 'lucide-react'
 
 interface PressureQuestion {
@@ -273,10 +274,7 @@ export default function PressureInterview() {
   const handleStart = async () => {
     setIsLoading(true)
     try {
-      const response = await fetch('/api/training/pressure-reset', {
-        method: 'POST',
-      })
-      await response.json()
+      await mockPressureReset()
       await fetchNextQuestion()
     } catch (error) {
       console.error('Failed to start:', error)
@@ -288,10 +286,7 @@ export default function PressureInterview() {
   const fetchNextQuestion = async () => {
     setIsLoading(true)
     try {
-      const response = await fetch('/api/training/pressure-question', {
-        method: 'POST',
-      })
-      const data = await response.json()
+      const data = await mockPressureQuestion()
       if (data.success) {
         setCurrentQuestion({
           question: data.question,
@@ -326,7 +321,7 @@ export default function PressureInterview() {
     if (timerRef.current) {
       clearInterval(timerRef.current)
     }
-    fetch('/api/training/pressure-reset', { method: 'POST' })
+    mockPressureReset()
     setCurrentQuestion(null)
     setCouragePoints(100)
     setHeartRate(72)

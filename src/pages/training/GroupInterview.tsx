@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { mockGroupRoles } from '@/lib/mockApi'
 import { Users, ArrowLeft, Brain, Target, MessageSquare, Lightbulb, Play, Pause, Volume2, VolumeX, Mic, MicOff, Video, VideoOff, User, RefreshCw } from 'lucide-react'
 
 interface Role {
@@ -217,10 +218,7 @@ export default function GroupInterview() {
   const generateRoles = async () => {
     setIsLoading(true)
     try {
-      const response = await fetch('/api/training/group-roles', {
-        method: 'POST',
-      })
-      const data = await response.json()
+      const data = await mockGroupRoles()
       if (data.success) {
         setRoles(data.roles)
         setSelectedRole(null)

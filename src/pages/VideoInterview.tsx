@@ -22,6 +22,7 @@ export default function VideoInterview() {
   const [isListening, setIsListening] = useState(false)
   const [transcript, setTranscript] = useState('')
   const [isVideoOn, setIsVideoOn] = useState(false)
+  const [videoStream, setVideoStream] = useState<MediaStream | null>(null)
   const [isTypingMode, setIsTypingMode] = useState(false)
   const [audioLevel, setAudioLevel] = useState(0)
   const [recordingDuration, setRecordingDuration] = useState(0)
@@ -46,9 +47,24 @@ export default function VideoInterview() {
 
   useEffect(() => {
     if (!interviewId) {
-      navigate('/')
+      const timer = setTimeout(() => {
+        if (!interviewId) {
+          navigate('/interview-practice')
+        }
+      }, 500)
+      return () => clearTimeout(timer)
     }
   }, [interviewId, navigate])
+
+  useEffect(() => {
+    console.log('videoStream useEffect triggered:', videoStream)
+    console.log('videoRef.current:', videoRef.current)
+    if (videoStream && videoRef.current) {
+      console.log('Setting video srcObject...')
+      videoRef.current.srcObject = videoStream
+      console.log('video srcObject set successfully')
+    }
+  }, [videoStream])
 
   const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
 
@@ -133,12 +149,13 @@ export default function VideoInterview() {
 
   const initVideo = useCallback(async () => {
     try {
+      console.log('initVideo: Starting camera access...')
       const stream = await navigator.mediaDevices.getUserMedia({ video: true })
+      console.log('initVideo: Camera stream obtained successfully:', stream)
       videoStreamRef.current = stream
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream
-        setIsVideoOn(true)
-      }
+      setVideoStream(stream)
+      setIsVideoOn(true)
+      console.log('initVideo: State updated, isVideoOn:', true)
     } catch (error) {
       console.error('Failed to access camera:', error)
       alert('无法访问摄像头，请检查权限设置')
@@ -150,6 +167,7 @@ export default function VideoInterview() {
       videoStreamRef.current.getTracks().forEach(track => track.stop())
       videoStreamRef.current = null
     }
+    setVideoStream(null)
     setIsVideoOn(false)
   }, [])
 
@@ -704,16 +722,17 @@ export default function VideoInterview() {
               <h3 className="text-sm font-medium text-text-secondary mb-4 text-center">我的画面</h3>
               
               <div className="relative rounded-xl overflow-hidden aspect-video bg-bg-paper mb-4 border border-border">
-                {isVideoOn && videoRef.current ? (
-                  <video
-                    ref={videoRef}
-                    autoPlay
-                    playsInline
-                    muted
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex flex-col items-center justify-center">
+                <video
+                  ref={videoRef}
+                  autoPlay
+                  playsInline
+                  muted
+                  className={`w-full h-full object-cover transition-opacity duration-300 ${
+                    isVideoOn ? 'opacity-100' : 'opacity-0'
+                  }`}
+                />
+                {!isVideoOn && (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center">
                     <div className="w-20 h-20 rounded-full bg-sage-50 flex items-center justify-center mb-3">
                       <User className="w-10 h-10 text-sage-400" />
                     </div>

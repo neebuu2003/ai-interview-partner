@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useInterviewStore } from '@/store/interview'
+import { mockInterviewStart } from '@/lib/mockApi'
 import { ArrowRight, ArrowLeft, Target, Smile, Flame, Search, AlertCircle, Loader2, CheckCircle2, Code, Server, Layout, BarChart3, Palette, TrendingUp, FileText, Mic, Video } from 'lucide-react'
 
 const industries = ['互联网', '金融', '教育', '医疗', '制造', '零售', '其他']
@@ -49,32 +50,24 @@ export default function InterviewPractice() {
     const finalPosition = selectedPosition || position || '通用岗位'
     
     try {
-      const response = await fetch('/api/interview/start', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          jd: jd || '请输入目标岗位描述',
-          industry: industry || '互联网',
-          position: finalPosition,
-          interviewerStyle,
-        }),
-      })
-      
-      const data = await response.json()
+      const data = await mockInterviewStart(
+        jd || '',
+        industry || '互联网',
+        finalPosition,
+        interviewerStyle
+      )
       if (data.success) {
-            setShowSuccess(true)
-            setTimeout(() => {
-              startInterview({
-                question: data.question,
-                interviewId: data.interviewId,
-                totalQuestions: data.totalQuestions,
-                greeting: data.greeting,
-                extractedSkills: data.extractedSkills,
-              })
-              navigate(`/interview/${interviewMode}`)
-            }, 800)
-          } else {
-        setErrors({ jd: data.error || '启动面试失败，请重试' })
+        setShowSuccess(true)
+        startInterview({
+          question: data.question,
+          interviewId: data.interviewId,
+          totalQuestions: data.totalQuestions,
+          greeting: data.greeting,
+          extractedSkills: data.extractedSkills,
+        })
+        setTimeout(() => {
+          navigate(`/interview/${interviewMode}`)
+        }, 100)
       }
     } catch (error) {
       console.error('Failed to start interview:', error)
